@@ -137,6 +137,9 @@
   .rx-row input:disabled{background:#F2F0EA;color:#B4BAB6}
   .rx-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:#B0B7B2;pointer-events:none}
   .rx-row.err input{border-color:#E3A79F;background:#FFF8F6}
+  .req-star{position:absolute;top:4px;right:7px;color:var(--danger);font-size:12px;font-weight:700;line-height:1}
+  .rx-row-err{display:none;font-size:11.5px;color:var(--danger);margin:-2px 0 10px 82px;line-height:1.45;white-space:pre-line}
+  .rx-row-err.show{display:block}
 
   .switch-line{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -333,9 +336,10 @@
 
       <div class="rx-row" id="f-axis">
         <div class="rx-label"><b>轴位</b><i>AXIS 0-180</i></div>
-        <div class="rx-input-wrap"><input id="r-axis" inputmode="numeric" placeholder="例 5" maxlength="3" /><span class="rx-unit">°</span></div>
-        <div class="rx-input-wrap"><input id="l-axis" inputmode="numeric" placeholder="例 175" maxlength="3" /><span class="rx-unit">°</span></div>
+        <div class="rx-input-wrap"><input id="r-axis" inputmode="numeric" placeholder="例 5" maxlength="3" /><span class="rx-unit">°</span><span class="req-star" id="star-r" hidden>*</span></div>
+        <div class="rx-input-wrap"><input id="l-axis" inputmode="numeric" placeholder="例 175" maxlength="3" /><span class="rx-unit">°</span><span class="req-star" id="star-l" hidden>*</span></div>
       </div>
+      <div class="rx-row-err" id="err-axis"></div>
 
       <div class="rx-row" id="f-pd">
         <div class="rx-label"><b>瞳距</b><i>PD 单眼</i></div>
@@ -389,8 +393,6 @@
 
     <div class="footer-links">
       <button type="button" id="shareBtn" class="share" hidden>分享给朋友</button>
-      <button type="button" id="goRecords">填写记录</button>
-      <button type="button" id="goIntake">店主收单</button>
     </div>
   </div>
 
@@ -401,7 +403,7 @@
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1D5C4B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l4.6 4.6L19.5 7"/></svg>
       </div>
       <h2>信息已整理完成</h2>
-      <p>复制下面的内容，发送给店主即可</p>
+      <p>已提交成功，店主后台已经收到</p>
       <div class="no" id="doneNo">GX-000000</div>
     </div>
     <div class="card" style="margin-top:18px">
@@ -412,11 +414,11 @@
     <div class="done-actions">
       <button class="btn-primary" id="copyDone" style="height:50px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
-        复制并发送给店主
+        复制一份留底
       </button>
       <button class="btn-ghost" id="againBtn">再填一位</button>
     </div>
-    <p class="done-note">长按上方文字也可以直接复制。<br>信息只保存在本机浏览器，不会上传到任何服务器。</p>
+    <p class="done-note">长按上方文字也可以直接复制。<br>信息已提交到店主后台，仅店主登录后可见。</p>
   </div>
 
   <!-- ================= 本机记录 ================= -->
@@ -455,46 +457,53 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="config.js"></script>
 <script>
 (function(){
   'use strict';
 
   var STORE_KEY = 'eyewear_order_records_v1';
   var $ = function(id){ return document.getElementById(id); };
+  var API_BASE = String(window.GLASSES_API_BASE || '').replace(/\/$/, '');
 
   /* ---------------- 数值解析 ---------------- */
-  function parsePower(raw){
+  function parsePower(raw, max){
+    var limit = max || 30;
     if(raw === null || raw === undefined) return null;
     var s = String(raw).trim();
     if(!s) return null;
     s = s.replace(/[−–—]/g,'-').replace(/＋/g,'+').replace(/[ＤｄD度\s]/g,'');
-    s = s.replace(/PL|pl/g,'0');
-    var neg = s.indexOf('-') === 0;
-    var pos = s.indexOf('+') === 0;
-    var n = parseFloat(s.replace(/[+]/g,''));
+    if(/^(PL|pl)$/.test(s)) s = '0';
+    if(!/^[+-]?\d{1,3}(\.\d{1,3})?$/.test(s)) return null;
+    var n = parseFloat(s);
     if(isNaN(n)) return null;
+    var pos = s.charAt(0) === '+';
     var abs = Math.abs(n);
     if(abs >= 20) abs = abs / 100;
     abs = Math.round(abs * 100) / 100;
-    var sign = pos ? 1 : (neg ? -1 : -1);   // 未写符号按近视（负）处理
-    return Math.round(sign * abs * 100) / 100;
+    var v = pos ? abs : -abs;   // 未写符号按近视（负）处理
+    if(abs === 0) v = 0;
+    if(Math.abs(v) > limit + 0.0001) return null;
+    return v;
   }
 
   function parseAxis(raw){
     if(raw === null || raw === undefined) return null;
     var s = String(raw).trim().replace(/[°度\s]/g,'');
     if(!s) return null;
-    var n = parseFloat(s);
-    if(isNaN(n)) return null;
-    return Math.round(n);
+    if(!/^\d{1,3}$/.test(s)) return null;   // 必须是整数，0 是合法值
+    var n = parseInt(s, 10);
+    if(n < 0 || n > 180) return null;
+    return n;
   }
 
   function parsePd(raw){
     if(raw === null || raw === undefined) return null;
-    var s = String(raw).trim().replace(/[mMｇg\s]/g,'');
+    var s = String(raw).trim().replace(/[mMｇg度\s]/g,'');
     if(!s) return null;
+    if(!/^\d{1,3}(\.\d{1,2})?$/.test(s)) return null;
     var n = parseFloat(s);
-    if(isNaN(n) || n <= 0) return null;
+    if(isNaN(n) || n < 1 || n > 60) return null;
     return Math.round(n * 10) / 10;
   }
 
@@ -513,13 +522,29 @@
     return n > 0 ? '+' + s : s;
   }
 
+  function showD(v){
+    if(v === null || v === undefined || v === '') return '—';
+    return typeof v === 'number' ? fmtD(v) : String(v);
+  }
+  function showText(v){ return (v === null || v === undefined || v === '') ? '—' : String(v); }
+
   /* ---------------- 读取 ---------------- */
   function readEye(p){
+    var sphRaw = $(p + '-sph').value.trim();
+    var cylRaw = $(p + '-cyl').value.trim();
+    var axisRaw = $(p + '-axis').value.trim();
+    var pdRaw = $(p + '-pd').value.trim();
+    var sph = parsePower(sphRaw, 30);
+    var cyl = parsePower(cylRaw, 10);
+    var axis = parseAxis(axisRaw);
+    var pd = parsePd(pdRaw);
     return {
-      sph: parsePower($(p + '-sph').value),
-      cyl: parsePower($(p + '-cyl').value),
-      axis: parseAxis($(p + '-axis').value),
-      pd: parsePd($(p + '-pd').value)
+      sph: sph, cyl: cyl, axis: axis, pd: pd,
+      sphRaw: sphRaw, cylRaw: cylRaw, axisRaw: axisRaw, pdRaw: pdRaw,
+      sphBad: !!sphRaw && sph === null,
+      cylBad: !!cylRaw && cyl === null,
+      axisBad: !!axisRaw && axis === null,
+      pdBad: !!pdRaw && pd === null
     };
   }
 
@@ -566,15 +591,16 @@
 
     setCell('pvSphR', d.r.sph !== null ? fmtD(d.r.sph) : '');
     setCell('pvSphL', d.l.sph !== null ? fmtD(d.l.sph) : '');
-    var cylR = d.r.cyl === 0 || d.noAstig ? '' : (d.r.cyl !== null ? fmtD(d.r.cyl) : '');
-    var cylL = d.l.cyl === 0 || d.noAstig ? '' : (d.l.cyl !== null ? fmtD(d.l.cyl) : '');
-    if(d.noAstig){ cylR = '0.00'; cylL = '0.00'; }
+    var cylR = d.noAstig ? '0.00' : (d.r.cyl !== null ? fmtD(d.r.cyl) : '');
+    var cylL = d.noAstig ? '0.00' : (d.l.cyl !== null ? fmtD(d.l.cyl) : '');
     setCell('pvCylR', cylR);
     setCell('pvCylL', cylL);
     var needAxisR = !d.noAstig && d.r.cyl !== null && d.r.cyl !== 0;
     var needAxisL = !d.noAstig && d.l.cyl !== null && d.l.cyl !== 0;
-    setCell('pvAxiR', needAxisR && d.r.axis !== null ? d.r.axis + '°' : (d.noAstig ? '—' : ''));
-    setCell('pvAxiL', needAxisL && d.l.axis !== null ? d.l.axis + '°' : (d.noAstig ? '—' : ''));
+    if($('star-r')) $('star-r').hidden = !needAxisR;
+    if($('star-l')) $('star-l').hidden = !needAxisL;
+    setCell('pvAxiR', needAxisR ? (d.r.axis !== null ? d.r.axis + '°' : '待补') : '');
+    setCell('pvAxiL', needAxisL ? (d.l.axis !== null ? d.l.axis + '°' : '待补') : '');
     setCell('pvPdR', d.r.pd !== null ? d.r.pd + ' mm' : '');
     setCell('pvPdL', d.l.pd !== null ? d.l.pd + ' mm' : '');
     setText('pvPdTotal', d.pdTotal ? d.pdTotal + ' mm' : '—', !d.pdTotal);
@@ -592,43 +618,69 @@
     if(on) el.classList.add('err'); else el.classList.remove('err');
   }
 
-  function validate(){
-    var d = readAll();
-    var errs = [];
+  function clearErrors(){
     ['f-name','f-phone','f-address','f-sph','f-cyl','f-axis','f-pd'].forEach(function(id){ setErr(id,false); });
-
-    if(!d.name){ setErr('f-name',true); errs.push('f-name'); }
-    var digits = (d.phone.match(/\d/g) || []).length;
-    if(digits < 7 || digits > 15 || /[^\d+]/.test(d.phone)){ setErr('f-phone',true); errs.push('f-phone'); }
-    if(!d.address){ setErr('f-address',true); errs.push('f-address'); }
-
-    if(d.r.sph === null && d.l.sph === null){ setErr('f-sph',true); errs.push('f-sph'); }
-    if(d.r.cyl !== null && (d.r.cyl === 0) && !d.noAstig){ /* ok */ }
-    // 轴位必须成对
-    var needAxisR = !d.noAstig && d.r.cyl !== null && d.r.cyl !== 0;
-    var needAxisL = !d.noAstig && d.l.cyl !== null && d.l.cyl !== 0;
-    if(needAxisR && d.r.axis === null){ setErr('f-axis',true); errs.push('f-axis'); }
-    if(needAxisL && d.l.axis === null){ setErr('f-axis',true); errs.push('f-axis'); }
-    if((d.r.axis !== null && (d.r.axis < 0 || d.r.axis > 180)) || (d.l.axis !== null && (d.l.axis < 0 || d.l.axis > 180))){
-      setErr('f-axis',true); errs.push('f-axis');
-    }
-    if((d.r.cyl !== null && Math.abs(d.r.cyl) > 10) || (d.l.cyl !== null && Math.abs(d.l.cyl) > 10)){
-      setErr('f-cyl',true); errs.push('f-cyl');
-    }
-    if((d.r.sph !== null && Math.abs(d.r.sph) > 30) || (d.l.sph !== null && Math.abs(d.l.sph) > 30)){
-      setErr('f-sph',true); errs.push('f-sph');
-    }
-    return { data: d, errs: errs };
+    ['r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){
+      var el = $(id); if(el) el.setAttribute('aria-invalid','false');
+    });
+    var bar = $('err-axis');
+    if(bar){ bar.textContent = ''; bar.classList.remove('show'); }
   }
 
-  function errMessage(ids){
-    if(ids.indexOf('f-name') >= 0) return '请填写收件人姓名';
-    if(ids.indexOf('f-phone') >= 0) return '请检查手机号码';
-    if(ids.indexOf('f-address') >= 0) return '请填写详细收货地址';
-    if(ids.indexOf('f-sph') >= 0) return '请至少填写右眼或左眼的球镜度数';
-    if(ids.indexOf('f-axis') >= 0) return '轴位需填写 0-180 的整数';
-    if(ids.indexOf('f-cyl') >= 0) return '散光度数看起来不正确，请核对';
-    return '请检查填写内容';
+  function applyErrors(errors){
+    clearErrors();
+    var axisMsgs = [];
+    var seen = {};
+    errors.forEach(function(e){
+      var id = e.id || '';
+      var input = $(id);
+      if(input) input.setAttribute('aria-invalid','true');
+      if(id === 'r-axis' || id === 'l-axis') axisMsgs.push((id.charAt(0) === 'r' ? '右眼：' : '左眼：') + e.msg);
+      var group = /^(r|l)-/.test(id) ? 'f-' + id.slice(2) : 'f-' + id;
+      if(seen[group]) return;
+      seen[group] = true;
+      setErr(group, true);
+    });
+    var bar = $('err-axis');
+    if(bar && axisMsgs.length){
+      bar.textContent = axisMsgs.join('\n');
+      bar.classList.add('show');
+    }
+  }
+
+  function validate(){
+    var d = readAll();
+    clearErrors();
+    var errors = [];
+    function add(id, msg){ errors.push({ id: id, msg: msg }); }
+
+    if(!d.name) add('name', '请填写收件人姓名');
+    var digits = (d.phone.match(/\d/g) || []).length;
+    if(digits < 7 || digits > 15 || /[^\d+]/.test(d.phone)) add('phone', '请填写正确的手机号码');
+    if(!d.address) add('address', '请填写详细收货地址');
+
+    if(d.r.sphBad) add('r-sph', '右眼球镜格式不正确');
+    if(d.l.sphBad) add('l-sph', '左眼球镜格式不正确');
+    if(d.r.cylBad) add('r-cyl', '右眼散光度数格式不正确');
+    if(d.l.cylBad) add('l-cyl', '左眼散光度数格式不正确');
+    if(d.r.pdBad) add('r-pd', '右眼瞳距格式不正确');
+    if(d.l.pdBad) add('l-pd', '左眼瞳距格式不正确');
+
+    // 左右眼分别判断：只有该眼柱镜非 0，才要求该眼轴位。
+    var needAxisR = !d.noAstig && d.r.cyl !== null && d.r.cyl !== 0;
+    var needAxisL = !d.noAstig && d.l.cyl !== null && d.l.cyl !== 0;
+    if(d.r.axisBad || d.l.axisBad) add(d.r.axisBad ? 'r-axis' : 'l-axis', '轴位需为 0-180 的整数');
+    if(needAxisR && d.r.axisRaw === '') add('r-axis', '已填写散光度数，请补充该眼轴位。');
+    if(needAxisL && d.l.axisRaw === '') add('l-axis', '已填写散光度数，请补充该眼轴位。');
+    if(d.r.sph === null && d.l.sph === null && !d.r.sphBad && !d.l.sphBad){
+      add('r-sph', '请至少填写右眼或左眼的球镜度数');
+    }
+    applyErrors(errors);
+    return { ok: errors.length === 0, errors: errors, data: d };
+  }
+
+  function errMessage(errors){
+    return errors && errors.length ? errors[0].msg : '请检查填写内容';
   }
 
   /* ---------------- 生成订单 ---------------- */
@@ -655,10 +707,10 @@
     if(rec.note) lines.push('备注：' + rec.note);
     lines.push('');
     lines.push('处方（右眼 / 左眼）');
-    lines.push('球镜 SPH：' + (rec.r.sph !== null ? fmtD(rec.r.sph) : '—') + ' / ' + (rec.l.sph !== null ? fmtD(rec.l.sph) : '—'));
-    lines.push('柱镜 CYL：' + (rec.noAstig ? '0.00' : (rec.r.cyl !== null ? fmtD(rec.r.cyl) : '—')) + ' / ' + (rec.noAstig ? '0.00' : (rec.l.cyl !== null ? fmtD(rec.l.cyl) : '—')));
-    lines.push('轴位 AXIS：' + (rec.noAstig ? '—' : (rec.r.axis !== null ? rec.r.axis : '—')) + ' / ' + (rec.noAstig ? '—' : (rec.l.axis !== null ? rec.l.axis : '—')));
-    lines.push('瞳距 PD：' + (rec.r.pd !== null ? rec.r.pd : '—') + ' / ' + (rec.l.pd !== null ? rec.l.pd : '—'));
+    lines.push('球镜 SPH：' + showD(rec.r.sph) + ' / ' + showD(rec.l.sph));
+    lines.push('柱镜 CYL：' + showD(rec.noAstig ? '0.00' : rec.r.cyl) + ' / ' + showD(rec.noAstig ? '0.00' : rec.l.cyl));
+    lines.push('轴位 AXIS：' + showText(rec.noAstig ? '' : rec.r.axis) + ' / ' + showText(rec.noAstig ? '' : rec.l.axis));
+    lines.push('瞳距 PD：' + showText(rec.r.pd) + ' / ' + showText(rec.l.pd));
     if(rec.pdTotal) lines.push('总瞳距：' + rec.pdTotal + ' mm');
     lines.push('');
     lines.push('镜片类型：单光');
@@ -913,10 +965,10 @@
     if(rec.note) html += '<div class="slip-line"><span>备注</span><b>' + esc(rec.note) + '</b></div>';
     html += '<div class="slip-divider"></div>';
     html += '<table class="rx-table"><thead><tr><th>处方</th><th>右眼 R</th><th>左眼 L</th></tr></thead><tbody>';
-    html += '<tr><td>球镜 SPH</td><td>' + (rec.r.sph !== null ? fmtD(rec.r.sph) : '—') + '</td><td>' + (rec.l.sph !== null ? fmtD(rec.l.sph) : '—') + '</td></tr>';
-    html += '<tr><td>柱镜 CYL</td><td>' + (rec.noAstig ? '0.00' : (rec.r.cyl !== null ? fmtD(rec.r.cyl) : '—')) + '</td><td>' + (rec.noAstig ? '0.00' : (rec.l.cyl !== null ? fmtD(rec.l.cyl) : '—')) + '</td></tr>';
-    html += '<tr><td>轴位 AXIS</td><td>' + (rec.noAstig ? '—' : (rec.r.axis !== null ? rec.r.axis + '°' : '—')) + '</td><td>' + (rec.noAstig ? '—' : (rec.l.axis !== null ? rec.l.axis + '°' : '—')) + '</td></tr>';
-    html += '<tr><td>瞳距 PD</td><td>' + (rec.r.pd !== null ? rec.r.pd + ' mm' : '—') + '</td><td>' + (rec.l.pd !== null ? rec.l.pd + ' mm' : '—') + '</td></tr>';
+    html += '<tr><td>球镜 SPH</td><td>' + showD(rec.r.sph) + '</td><td>' + showD(rec.l.sph) + '</td></tr>';
+    html += '<tr><td>柱镜 CYL</td><td>' + showD(rec.noAstig ? '0.00' : rec.r.cyl) + '</td><td>' + showD(rec.noAstig ? '0.00' : rec.l.cyl) + '</td></tr>';
+    html += '<tr><td>轴位 AXIS</td><td>' + (rec.noAstig || !rec.r.axis ? '—' : showText(rec.r.axis) + '°') + '</td><td>' + (rec.noAstig || !rec.l.axis ? '—' : showText(rec.l.axis) + '°') + '</td></tr>';
+    html += '<tr><td>瞳距 PD</td><td>' + (rec.r.pd ? showText(rec.r.pd) + ' mm' : '—') + '</td><td>' + (rec.l.pd ? showText(rec.l.pd) + ' mm' : '—') + '</td></tr>';
     html += '</tbody></table>';
     if(rec.pdTotal) html += '<div class="slip-divider"></div><div class="slip-line"><span>总瞳距</span><b>' + rec.pdTotal + ' mm</b></div>';
     $('doneBody').innerHTML = html;
@@ -964,24 +1016,53 @@
 
   $('submitBtn').addEventListener('click', function(){
     var res = validate();
-    if(res.errs.length){
-      toast(errMessage(res.errs));
-      var first = $(res.errs[0]);
+    if(!res.ok){
+      toast(errMessage(res.errors));
+      var first = $(res.errors[0].id);
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
       return;
     }
     var d = res.data;
-    var rec = {
-      no: makeOrderNo(d),
-      createdAt: new Date().toISOString(),
+    var payload = {
       name: d.name, phone: d.phone, city: d.city, address: d.address, note: d.note,
-      r: d.r, l: d.l, pdTotal: d.pdTotal, noAstig: d.noAstig
+      noAstig: d.noAstig,
+      r: { sph: d.r.sphRaw, cyl: d.r.cylRaw, axis: d.r.axisRaw, pd: d.r.pdRaw },
+      l: { sph: d.l.sphRaw, cyl: d.l.cylRaw, axis: d.l.axisRaw, pd: d.l.pdRaw }
     };
-    var list = loadRecords();
-    list.unshift(rec);
-    saveRecords(list);
-    renderDone(rec);
-    showScreen('done');
+    var btn = this;
+    var old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '正在提交…';
+    fetch(API_BASE + '/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(body){
+        if(!r.ok || !body.ok){
+          var mapped = (body.errors || []).map(function(e){
+            return { id: String(e.field || '').replace(/\./g, '-'), msg: e.message || '请检查填写内容' };
+          });
+          if(mapped.length) applyErrors(mapped);
+          throw new Error(body.error || (mapped[0] && mapped[0].msg) || '提交失败，请稍后再试');
+        }
+        return body;
+      });
+    }).then(function(body){
+      var rec = body.record || {};
+      rec.no = body.no || rec.no;
+      rec.createdAt = body.createdAt || rec.createdAt;
+      rec.createdAtText = body.createdAtText || rec.createdAtText;
+      if(!rec.r) rec.r = d.r;
+      if(!rec.l) rec.l = d.l;
+      renderDone(rec);
+      showScreen('done');
+    }).catch(function(err){
+      toast(err.message || '网络异常，请稍后再试');
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = old;
+    });
   });
 
   $('copyDone').addEventListener('click', function(){
@@ -996,13 +1077,15 @@
     showScreen('form');
   });
 
-  $('goRecords').addEventListener('click', function(){
+  var goRecords = $('goRecords');
+  if(goRecords) goRecords.addEventListener('click', function(){
     renderRecords();
     showScreen('records');
   });
   $('backFromRecords').addEventListener('click', function(){ showScreen('form'); });
 
-  $('goIntake').addEventListener('click', function(){ showScreen('intake'); });
+  var goIntake = $('goIntake');
+  if(goIntake) goIntake.addEventListener('click', function(){ showScreen('intake'); });
   $('backFromIntake').addEventListener('click', function(){ showScreen('form'); });
 
   $('parseBtn').addEventListener('click', function(){
