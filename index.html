@@ -321,26 +321,26 @@
 
       <div class="rx-row" id="f-sph">
         <div class="rx-label"><b>球镜</b><i>SPH 近视/远视</i></div>
-        <div class="rx-input-wrap"><input id="r-sph" inputmode="decimal" placeholder="-4.25" /><span class="rx-unit">D</span></div>
-        <div class="rx-input-wrap"><input id="l-sph" inputmode="decimal" placeholder="-4.50" /><span class="rx-unit">D</span></div>
+        <div class="rx-input-wrap"><input id="r-sph" inputmode="decimal" placeholder="例 -4.25" /><span class="rx-unit">D</span></div>
+        <div class="rx-input-wrap"><input id="l-sph" inputmode="decimal" placeholder="例 -4.50" /><span class="rx-unit">D</span></div>
       </div>
 
       <div class="rx-row" id="f-cyl">
         <div class="rx-label"><b>柱镜</b><i>CYL 散光</i></div>
-        <div class="rx-input-wrap"><input id="r-cyl" inputmode="decimal" placeholder="-1.25" /><span class="rx-unit">D</span></div>
-        <div class="rx-input-wrap"><input id="l-cyl" inputmode="decimal" placeholder="-0.50" /><span class="rx-unit">D</span></div>
+        <div class="rx-input-wrap"><input id="r-cyl" inputmode="decimal" placeholder="例 -1.25" /><span class="rx-unit">D</span></div>
+        <div class="rx-input-wrap"><input id="l-cyl" inputmode="decimal" placeholder="例 -0.50" /><span class="rx-unit">D</span></div>
       </div>
 
       <div class="rx-row" id="f-axis">
         <div class="rx-label"><b>轴位</b><i>AXIS 0-180</i></div>
-        <div class="rx-input-wrap"><input id="r-axis" inputmode="numeric" placeholder="5" maxlength="3" /><span class="rx-unit">°</span></div>
-        <div class="rx-input-wrap"><input id="l-axis" inputmode="numeric" placeholder="175" maxlength="3" /><span class="rx-unit">°</span></div>
+        <div class="rx-input-wrap"><input id="r-axis" inputmode="numeric" placeholder="例 5" maxlength="3" /><span class="rx-unit">°</span></div>
+        <div class="rx-input-wrap"><input id="l-axis" inputmode="numeric" placeholder="例 175" maxlength="3" /><span class="rx-unit">°</span></div>
       </div>
 
       <div class="rx-row" id="f-pd">
         <div class="rx-label"><b>瞳距</b><i>PD 单眼</i></div>
-        <div class="rx-input-wrap"><input id="r-pd" inputmode="decimal" placeholder="34" /><span class="rx-unit">mm</span></div>
-        <div class="rx-input-wrap"><input id="l-pd" inputmode="decimal" placeholder="34" /><span class="rx-unit">mm</span></div>
+        <div class="rx-input-wrap"><input id="r-pd" inputmode="decimal" placeholder="例 34" /><span class="rx-unit">mm</span></div>
+        <div class="rx-input-wrap"><input id="l-pd" inputmode="decimal" placeholder="例 34" /><span class="rx-unit">mm</span></div>
       </div>
 
       <div class="switch-line">
@@ -1059,6 +1059,32 @@
   /* ---------------- 初始化 ---------------- */
   var now = new Date();
   $('slipDate').textContent = now.getFullYear() + '.' + pad(now.getMonth()+1) + '.' + pad(now.getDate());
+
+  // 支持链接预填：?n=姓名&p=电话&c=城市&a=地址&rs=右球镜&ls=左球镜&rc=右柱镜&lc=左柱镜&ra=右轴位&la=左轴位&rp=右瞳距&lp=左瞳距&note=备注&na=1
+  (function prefill(){
+    if(!window.URLSearchParams) return;
+    var q = new URLSearchParams(location.search);
+    var map = { n:'name', p:'phone', c:'city', a:'address', note:'note',
+      rs:'r-sph', rc:'r-cyl', ra:'r-axis', rp:'r-pd',
+      ls:'l-sph', lc:'l-cyl', la:'l-axis', lp:'l-pd' };
+    var hit = false;
+    Object.keys(map).forEach(function(k){
+      if(q.has(k)){
+        var el = $(map[k]);
+        if(el){ el.value = q.get(k); hit = true; }
+      }
+    });
+    if(q.get('na') === '1'){
+      $('noAstig').checked = true;
+      ['r-cyl','l-cyl','r-axis','l-axis'].forEach(function(id){ $(id).disabled = true; $(id).value = ''; });
+      hit = true;
+    }
+    if(hit){
+      renderPreview();
+      setTimeout(function(){ toast('已带入预填信息，请核对'); }, 500);
+    }
+  })();
+
   renderPreview();
 })();
 </script>
