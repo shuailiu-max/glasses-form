@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="theme-color" content="#153F34" />
+<title>眼镜定制信息登记</title>
+<meta name="description" content="填写收件信息与验光处方，约 2 分钟完成眼镜定制登记。" />
+<meta property="og:title" content="眼镜定制信息登记" />
+<meta property="og:description" content="填写收件信息与验光处方，约 2 分钟完成。" />
+<style>
+  :root{
+    --ink:#16211D;
+    --sub:#6E7A74;
+    --faint:#9AA49F;
+    --line:#E9E5DB;
+    --bg:#F7F5F0;
+    --card:#FFFFFF;
+    --brand:#1D5C4B;
+    --brand-deep:#153F34;
+    --brand-soft:#EDF4F0;
+    --gold:#B8892F;
+    --danger:#C0392B;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  input,textarea,button{font-family:inherit;font-size:inherit;color:inherit}
+  input,textarea{-webkit-appearance:none;appearance:none}
+
+  .app{max-width:560px;margin:0 auto;padding-bottom:120px}
+
+  /* ---------- header ---------- */
+  .hero{
+    position:relative;overflow:hidden;
+    background:linear-gradient(155deg,#1E6150 0%,#153F34 62%,#12332B 100%);
+    color:#fff;
+    padding:30px 22px 30px;
+    border-radius:0 0 26px 26px;
+  }
+  .hero::after{
+    content:"";position:absolute;right:-46px;top:-52px;
+    width:190px;height:190px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,rgba(184,137,47,.34),rgba(184,137,47,0) 68%);
+  }
+  .hero-icon{width:34px;height:34px;margin-bottom:14px;opacity:.92}
+  .hero h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.5px}
+  .hero p{margin:8px 0 0;font-size:13px;color:rgba(255,255,255,.72);letter-spacing:.2px}
+  .hero-meta{display:flex;gap:18px;margin-top:18px;font-size:12px;color:rgba(255,255,255,.62)}
+  .hero-meta b{display:block;font-size:15px;color:#fff;font-weight:600;margin-top:2px;letter-spacing:.4px}
+
+  /* ---------- cards ---------- */
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:18px 16px;
+    margin:14px 14px 0;
+    border:1px solid rgba(20,40,34,.05);
+    box-shadow:0 1px 2px rgba(20,40,34,.04),0 8px 24px -18px rgba(20,40,34,.35);
+  }
+  .card-head{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+  .step{
+    font-size:11px;font-weight:700;letter-spacing:.8px;
+    color:var(--brand);background:var(--brand-soft);
+    padding:3px 7px;border-radius:6px;
+  }
+  .card-head h2{margin:0;font-size:16px;font-weight:600;letter-spacing:.3px}
+  .card-head .live{margin-left:auto;font-size:11px;color:var(--brand);background:var(--brand-soft);padding:2px 8px;border-radius:20px}
+
+  /* ---------- fields ---------- */
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:7px;letter-spacing:.2px}
+  .field label .req{color:var(--gold);margin-left:2px}
+  .field input,.field textarea{
+    display:block;width:100%;
+    background:#FBFAF7;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 14px;
+    font-size:16px;
+    line-height:1.35;
+    outline:none;
+    transition:border-color .18s,background .18s,box-shadow .18s;
+  }
+  .field textarea{min-height:78px;resize:none;padding-top:12px}
+  .field input::placeholder,.field textarea::placeholder{color:#B8BFBA;font-size:15px}
+  .field input:focus,.field textarea:focus{
+    border-color:#8FB6A8;background:#fff;box-shadow:0 0 0 3px rgba(29,92,75,.08)
+  }
+  .field input:disabled{background:#F2F0EA;color:#A9B0AC}
+  .field.err input,.field.err textarea{border-color:#E3A79F;background:#FFF8F6}
+  .err-msg{display:none;font-size:12px;color:var(--danger);margin-top:6px}
+  .field.err .err-msg{display:block}
+  .tip{font-size:12px;color:var(--faint);margin-top:6px;line-height:1.45}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* ---------- prescription ---------- */
+  .rx-note{
+    display:flex;gap:8px;align-items:flex-start;
+    background:#FBF7EC;border:1px solid #EFE3C8;border-radius:12px;
+    padding:10px 12px;margin-bottom:16px;
+    font-size:11.5px;line-height:1.6;color:#8A6A2A;
+  }
+  .rx-note svg{flex:0 0 auto;margin-top:2px}
+  .rx-head{
+    display:grid;grid-template-columns:74px 1fr 1fr;gap:8px;
+    margin-bottom:8px;padding:0 2px;
+  }
+  .rx-head span{font-size:11.5px;color:var(--faint);text-align:center;letter-spacing:.6px}
+  .rx-head span:first-child{text-align:left}
+  .rx-row{
+    display:grid;grid-template-columns:74px 1fr 1fr;gap:8px;
+    align-items:center;margin-bottom:8px;
+  }
+  .rx-label{font-size:12px;color:var(--sub);line-height:1.3}
+  .rx-label b{display:block;font-size:12.5px;color:var(--ink);font-weight:500}
+  .rx-label i{font-style:normal;font-size:10px;color:var(--faint);letter-spacing:.3px}
+  .rx-input-wrap{position:relative}
+  .rx-row input{
+    width:100%;background:#FBFAF7;border:1px solid var(--line);border-radius:11px;
+    padding:12px 34px 12px 12px;font-size:16px;font-variant-numeric:tabular-nums;
+    text-align:center;outline:none;transition:border-color .18s,background .18s,box-shadow .18s;
+  }
+  .rx-row input::placeholder{color:#C2C8C3;font-size:14px}
+  .rx-row input:focus{border-color:#8FB6A8;background:#fff;box-shadow:0 0 0 3px rgba(29,92,75,.08)}
+  .rx-row input:disabled{background:#F2F0EA;color:#B4BAB6}
+  .rx-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:#B0B7B2;pointer-events:none}
+  .rx-row.err input{border-color:#E3A79F;background:#FFF8F6}
+
+  .switch-line{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);
+  }
+  .switch-line .txt{font-size:13px;color:var(--ink)}
+  .switch-line .txt small{display:block;font-size:11.5px;color:var(--faint);margin-top:2px}
+  .switch{position:relative;width:50px;height:30px;flex:0 0 auto}
+  .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;z-index:2}
+  .switch .track{
+    position:absolute;inset:0;border-radius:20px;background:#E2DED4;transition:background .2s;
+  }
+  .switch .track::after{
+    content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s;
+  }
+  .switch input:checked + .track{background:var(--brand)}
+  .switch input:checked + .track::after{transform:translateX(20px)}
+
+  /* ---------- preview ---------- */
+  .preview-card{background:linear-gradient(180deg,#fff,#FCFBF7)}
+  .slip{
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;
+  }
+  .slip-top{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;background:var(--brand-soft);
+    font-size:11px;color:var(--brand);letter-spacing:.6px;
+  }
+  .slip-top b{font-weight:600}
+  .slip-body{padding:12px}
+  .slip-line{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13px}
+  .slip-line span{color:var(--faint);flex:0 0 auto}
+  .slip-line b{font-weight:500;text-align:right;word-break:break-all;font-variant-numeric:tabular-nums}
+  .slip-line b.empty{color:#C4CAC6;font-weight:400}
+  .slip-line.addr b{text-align:left}
+  .slip-divider{height:1px;background:#F1EEE6;margin:8px 0}
+  .rx-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  .rx-table th{
+    font-weight:500;font-size:11px;color:var(--faint);text-align:center;
+    padding:6px 2px;border-bottom:1px solid #F1EEE6;
+  }
+  .rx-table th:first-child{text-align:left;width:78px}
+  .rx-table td{text-align:center;padding:7px 2px;border-bottom:1px solid #F7F4EE}
+  .rx-table td:first-child{text-align:left;color:var(--sub);font-size:12px}
+  .rx-table td:last-child, .rx-table th:last-child{border-right:0}
+  .rx-table tr:last-child td{border-bottom:0}
+  .rx-table .v{font-weight:500}
+  .rx-table .v.dim{color:#C4CAC6;font-weight:400}
+
+  /* ---------- submit ---------- */
+  .bottom-bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,rgba(247,245,240,.98) 55%,rgba(247,245,240,.86));
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  }
+  .bottom-inner{max-width:560px;margin:0 auto}
+  .btn-primary{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;height:52px;border:0;border-radius:15px;
+    background:linear-gradient(160deg,#20685A,#153F34);
+    color:#fff;font-size:16.5px;font-weight:600;letter-spacing:1px;
+    box-shadow:0 10px 22px -12px rgba(21,63,52,.9);
+    transition:transform .12s,opacity .12s;
+  }
+  .btn-primary:active{transform:scale(.985);opacity:.94}
+  .btn-primary[disabled]{opacity:.6}
+  .btn-ghost{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    width:100%;height:46px;border:1px solid var(--line);border-radius:13px;
+    background:#fff;color:var(--ink);font-size:15px;font-weight:500;
+  }
+  .btn-ghost:active{background:#F4F2EC}
+  .footer-links{display:flex;justify-content:center;gap:20px;padding:22px 0 4px;font-size:12px;color:var(--faint);flex-wrap:wrap}
+  .footer-links button{background:none;border:0;padding:0;color:inherit;font-size:inherit;text-decoration:underline;text-underline-offset:3px}
+  .footer-links button.share{color:var(--brand);font-weight:600;text-decoration:none;border:1px solid #CFE0D8;background:#EDF4F0;padding:6px 14px;border-radius:20px;font-size:12.5px}
+
+  /* ---------- done / records ---------- */
+  .done-hero{padding:34px 22px 6px;text-align:center}
+  .check{
+    width:64px;height:64px;border-radius:50%;margin:0 auto 16px;
+    background:var(--brand-soft);display:flex;align-items:center;justify-content:center;
+  }
+  .done-hero h2{margin:0;font-size:20px;font-weight:600}
+  .done-hero p{margin:7px 0 0;font-size:13px;color:var(--sub)}
+  .done-hero .no{display:inline-block;margin-top:12px;font-size:12px;color:var(--brand);background:var(--brand-soft);padding:4px 12px;border-radius:20px;letter-spacing:.6px}
+  .done-actions{padding:18px 14px 0;display:grid;gap:10px}
+  .done-note{font-size:12px;color:var(--faint);text-align:center;padding:14px 26px;line-height:1.7}
+
+  .records-head{display:flex;align-items:center;gap:10px;padding:18px 18px 6px}
+  .records-head h2{margin:0;font-size:18px;font-weight:600}
+  .records-head .back{margin-left:auto;border:0;background:none;color:var(--brand);font-size:13px;padding:6px}
+  .records-head .hbtn{border:0;background:#EDF4F0;color:var(--brand);font-size:12.5px;padding:7px 12px;border-radius:9px;margin-left:8px}
+  .records-head .hbtn:first-of-type{margin-left:auto}
+  .intake-tip{font-size:12px;color:var(--faint);line-height:1.6;margin-top:8px}
+  .parse-ok{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--brand);background:var(--brand-soft);padding:9px 14px;border-radius:10px;margin:12px 14px 0}
+  .rec{padding:14px 16px;margin:10px 14px 0;background:#fff;border-radius:14px;border:1px solid rgba(20,40,34,.05)}
+  .rec-top{display:flex;align-items:baseline;gap:8px}
+  .rec-top b{font-size:15px;font-weight:600}
+  .rec-top span{margin-left:auto;font-size:11px;color:var(--faint)}
+  .rec-meta{font-size:12.5px;color:var(--sub);margin-top:6px;line-height:1.6}
+  .rec-actions{display:flex;gap:8px;margin-top:10px}
+  .rec-actions button{
+    flex:1;height:34px;border-radius:9px;border:1px solid var(--line);background:#FBFAF7;font-size:12.5px;color:var(--ink)
+  }
+  .rec-actions button.del{color:var(--danger);flex:0 0 66px}
+  .recs-empty{text-align:center;padding:60px 30px;color:var(--faint);font-size:13px;line-height:1.8}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:120px;transform:translate(-50%,10px);
+    background:rgba(22,33,29,.92);color:#fff;font-size:13px;
+    padding:10px 18px;border-radius:10px;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;z-index:99;max-width:80vw;text-align:center;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  [hidden]{display:none !important}
+  @media (max-width:360px){
+    .rx-head,.rx-row{grid-template-columns:66px 1fr 1fr}
+    .rx-label b{font-size:12px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= 表单 ================= -->
+  <div id="screenForm">
+    <header class="hero">
+      <svg class="hero-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="13" cy="26" r="8"/><circle cx="35" cy="26" r="8"/>
+        <path d="M21 25c1-1.4 2-2 3-2s2 .6 3 2"/><path d="M5 24c0-3 2-5 5-5"/><path d="M43 24c0-3-2-5-5-5"/>
+      </svg>
+      <h1>眼镜定制信息登记</h1>
+      <p>填写收件信息与验光处方，约 2 分钟</p>
+      <div class="hero-meta">
+        <div>信息项<b>姓名 · 电话 · 地址</b></div>
+        <div>处方项<b>8 项数据</b></div>
+      </div>
+    </header>
+
+    <!-- 01 收货信息 -->
+    <section class="card">
+      <div class="card-head"><span class="step">01</span><h2>收件信息</h2></div>
+
+      <div class="field" id="f-name">
+        <label for="name">收件人姓名<span class="req">*</span></label>
+        <input id="name" type="text" placeholder="请填写真实姓名" autocomplete="name" maxlength="20" />
+        <div class="err-msg">请填写收件人姓名</div>
+      </div>
+
+      <div class="field" id="f-phone">
+        <label for="phone">手机号码<span class="req">*</span></label>
+        <input id="phone" type="tel" inputmode="numeric" placeholder="用于快递联系" autocomplete="tel" maxlength="20" />
+        <div class="err-msg">请填写正确的手机号码</div>
+      </div>
+
+      <div class="field" id="f-city">
+        <label for="city">所在城市 / 地区</label>
+        <input id="city" type="text" placeholder="如：上海市 浦东新区" maxlength="40" />
+      </div>
+
+      <div class="field" id="f-address">
+        <label for="address">详细收货地址<span class="req">*</span></label>
+        <textarea id="address" placeholder="街道、小区、楼栋门牌号" maxlength="120"></textarea>
+        <div class="err-msg">请填写详细收货地址</div>
+        <div class="tip">写清楼栋与门牌号，快递员更容易联系到您。</div>
+      </div>
+    </section>
+
+    <!-- 02 处方 -->
+    <section class="card">
+      <div class="card-head"><span class="step">02</span><h2>验光处方</h2></div>
+
+      <div class="rx-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5v.01"/></svg>
+        <div>当前镜片仅支持<b>单光处方</b>，不支持渐进多焦点；MEMOMIND ONE 暂不支持远视。</div>
+      </div>
+
+      <div class="rx-head"><span>项目</span><span>右眼 R</span><span>左眼 L</span></div>
+
+      <div class="rx-row" id="f-sph">
+        <div class="rx-label"><b>球镜</b><i>SPH 近视/远视</i></div>
+        <div class="rx-input-wrap"><input id="r-sph" inputmode="decimal" placeholder="-4.25" /><span class="rx-unit">D</span></div>
+        <div class="rx-input-wrap"><input id="l-sph" inputmode="decimal" placeholder="-4.50" /><span class="rx-unit">D</span></div>
+      </div>
+
+      <div class="rx-row" id="f-cyl">
+        <div class="rx-label"><b>柱镜</b><i>CYL 散光</i></div>
+        <div class="rx-input-wrap"><input id="r-cyl" inputmode="decimal" placeholder="-1.25" /><span class="rx-unit">D</span></div>
+        <div class="rx-input-wrap"><input id="l-cyl" inputmode="decimal" placeholder="-0.50" /><span class="rx-unit">D</span></div>
+      </div>
+
+      <div class="rx-row" id="f-axis">
+        <div class="rx-label"><b>轴位</b><i>AXIS 0-180</i></div>
+        <div class="rx-input-wrap"><input id="r-axis" inputmode="numeric" placeholder="5" maxlength="3" /><span class="rx-unit">°</span></div>
+        <div class="rx-input-wrap"><input id="l-axis" inputmode="numeric" placeholder="175" maxlength="3" /><span class="rx-unit">°</span></div>
+      </div>
+
+      <div class="rx-row" id="f-pd">
+        <div class="rx-label"><b>瞳距</b><i>PD 单眼</i></div>
+        <div class="rx-input-wrap"><input id="r-pd" inputmode="decimal" placeholder="34" /><span class="rx-unit">mm</span></div>
+        <div class="rx-input-wrap"><input id="l-pd" inputmode="decimal" placeholder="34" /><span class="rx-unit">mm</span></div>
+      </div>
+
+      <div class="switch-line">
+        <div class="txt">没有散光<small>打开后柱镜与轴位自动记为 0</small></div>
+        <label class="switch"><input type="checkbox" id="noAstig" /><span class="track"></span></label>
+      </div>
+
+      <p class="tip" style="margin-top:12px">
+        近视填写负数（-4.25），远视加 + 号（+1.50）；不写符号默认为近视。只写一个总瞳距（如 66）也可以，我们会自动平分到左右眼。
+      </p>
+    </section>
+
+    <!-- 03 备注 -->
+    <section class="card">
+      <div class="card-head"><span class="step">03</span><h2>补充说明<span style="font-weight:400;font-size:12px;color:#9AA49F;margin-left:6px">选填</span></h2></div>
+      <div class="field" style="margin-bottom:0">
+        <textarea id="note" placeholder="镜框颜色、度数变化、旧镜佩戴感受等" maxlength="200"></textarea>
+        <div class="tip">找不到验光单？可以先提交姓名和电话，再把验光单照片发给店主。</div>
+      </div>
+    </section>
+
+    <!-- 预览 -->
+    <section class="card preview-card">
+      <div class="card-head"><span class="step">PRE</span><h2>信息预览</h2><span class="live">实时更新</span></div>
+      <div class="slip">
+        <div class="slip-top"><b>EYEWEAR ORDER SLIP</b><span id="slipDate">—</span></div>
+        <div class="slip-body">
+          <div class="slip-line"><span>收件人</span><b id="pvName" class="empty">未填写</b></div>
+          <div class="slip-line"><span>联系电话</span><b id="pvPhone" class="empty">未填写</b></div>
+          <div class="slip-line addr"><span>收货地址</span><b id="pvAddr" class="empty">未填写</b></div>
+          <div class="slip-divider"></div>
+          <table class="rx-table">
+            <thead><tr><th>处方</th><th>右眼 R</th><th>左眼 L</th></tr></thead>
+            <tbody>
+              <tr><td>球镜 SPH</td><td class="v" id="pvSphR">—</td><td class="v" id="pvSphL">—</td></tr>
+              <tr><td>柱镜 CYL</td><td class="v" id="pvCylR">—</td><td class="v" id="pvCylL">—</td></tr>
+              <tr><td>轴位 AXIS</td><td class="v" id="pvAxiR">—</td><td class="v" id="pvAxiL">—</td></tr>
+              <tr><td>瞳距 PD</td><td class="v" id="pvPdR">—</td><td class="v" id="pvPdL">—</td></tr>
+            </tbody>
+          </table>
+          <div class="slip-divider"></div>
+          <div class="slip-line"><span>总瞳距</span><b id="pvPdTotal" class="empty">—</b></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-links">
+      <button type="button" id="shareBtn" class="share" hidden>分享给朋友</button>
+      <button type="button" id="goRecords">填写记录</button>
+      <button type="button" id="goIntake">店主收单</button>
+    </div>
+  </div>
+
+  <!-- ================= 提交成功 ================= -->
+  <div id="screenDone" hidden>
+    <div class="done-hero">
+      <div class="check">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1D5C4B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l4.6 4.6L19.5 7"/></svg>
+      </div>
+      <h2>信息已整理完成</h2>
+      <p>复制下面的内容，发送给店主即可</p>
+      <div class="no" id="doneNo">GX-000000</div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <div class="slip" style="border:0">
+        <div class="slip-body" id="doneBody" style="padding:2px"></div>
+      </div>
+    </div>
+    <div class="done-actions">
+      <button class="btn-primary" id="copyDone" style="height:50px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>
+        复制并发送给店主
+      </button>
+      <button class="btn-ghost" id="againBtn">再填一位</button>
+    </div>
+    <p class="done-note">长按上方文字也可以直接复制。<br>信息只保存在本机浏览器，不会上传到任何服务器。</p>
+  </div>
+
+  <!-- ================= 本机记录 ================= -->
+  <div id="screenRecords" hidden>
+    <div class="records-head">
+      <h2>本机填写记录</h2>
+      <button class="hbtn" id="exportCsv">导出 CSV</button>
+      <button class="hbtn" id="backFromRecords">返回</button>
+    </div>
+    <div id="recList"></div>
+  </div>
+
+  <!-- ================= 店主收单 ================= -->
+  <div id="screenIntake" hidden>
+    <div class="records-head">
+      <h2>店主收单</h2>
+      <button class="hbtn" id="backFromIntake">返回填写</button>
+    </div>
+    <section class="card" style="margin-top:8px">
+      <div class="field" style="margin-bottom:10px">
+        <label for="pasteBox">把对方在微信里发来的整段文字粘贴进来</label>
+        <textarea id="pasteBox" placeholder="【眼镜定制信息】&#10;收件人：张三&#10;手机号：138...&#10;收货地址：...&#10;球镜 SPH：-4.25 / -4.50&#10;..." style="min-height:190px;font-size:13px;line-height:1.75"></textarea>
+      </div>
+      <div class="intake-tip">自动识别姓名、电话、地址、处方、编号；识别后确认保存，就能在「填写记录」里查看和导出。</div>
+      <button class="btn-primary" id="parseBtn" style="height:46px;font-size:15px;margin-top:14px">识别信息</button>
+    </section>
+    <div id="parseResult"></div>
+  </div>
+
+  <div class="bottom-bar" id="bottomBar">
+    <div class="bottom-inner">
+      <button class="btn-primary" id="submitBtn">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var STORE_KEY = 'eyewear_order_records_v1';
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------------- 数值解析 ---------------- */
+  function parsePower(raw){
+    if(raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if(!s) return null;
+    s = s.replace(/[−–—]/g,'-').replace(/＋/g,'+').replace(/[ＤｄD度\s]/g,'');
+    s = s.replace(/PL|pl/g,'0');
+    var neg = s.indexOf('-') === 0;
+    var pos = s.indexOf('+') === 0;
+    var n = parseFloat(s.replace(/[+]/g,''));
+    if(isNaN(n)) return null;
+    var abs = Math.abs(n);
+    if(abs >= 20) abs = abs / 100;
+    abs = Math.round(abs * 100) / 100;
+    var sign = pos ? 1 : (neg ? -1 : -1);   // 未写符号按近视（负）处理
+    return Math.round(sign * abs * 100) / 100;
+  }
+
+  function parseAxis(raw){
+    if(raw === null || raw === undefined) return null;
+    var s = String(raw).trim().replace(/[°度\s]/g,'');
+    if(!s) return null;
+    var n = parseFloat(s);
+    if(isNaN(n)) return null;
+    return Math.round(n);
+  }
+
+  function parsePd(raw){
+    if(raw === null || raw === undefined) return null;
+    var s = String(raw).trim().replace(/[mMｇg\s]/g,'');
+    if(!s) return null;
+    var n = parseFloat(s);
+    if(isNaN(n) || n <= 0) return null;
+    return Math.round(n * 10) / 10;
+  }
+
+  function fmtD(n){
+    if(n === null || n === undefined) return '';
+    var v = n === 0 ? 0 : n;
+    var t = (Math.abs(v) < 0.005 ? 0 : v).toFixed(2);
+    if(v > 0) t = '+' + t;
+    return t;
+  }
+
+  function fmtShort(n){
+    if(n === null || n === undefined) return '';
+    if(Math.abs(n) < 0.005) return '0.00';
+    var s = String(n);
+    return n > 0 ? '+' + s : s;
+  }
+
+  /* ---------------- 读取 ---------------- */
+  function readEye(p){
+    return {
+      sph: parsePower($(p + '-sph').value),
+      cyl: parsePower($(p + '-cyl').value),
+      axis: parseAxis($(p + '-axis').value),
+      pd: parsePd($(p + '-pd').value)
+    };
+  }
+
+  function readAll(){
+    var r = readEye('r'), l = readEye('l');
+    var pdR = r.pd, pdL = l.pd, pdTotal = null;
+    if(pdR !== null && pdR >= 50 && pdL === null){
+      pdTotal = pdR; pdR = Math.round(pdR / 2 * 10) / 10; pdL = Math.round(pdR * 10) / 10;
+    } else if(pdL !== null && pdL >= 50 && pdR === null){
+      pdTotal = pdL; pdL = Math.round(pdL / 2 * 10) / 10; pdR = Math.round(pdL * 10) / 10;
+    } else if(pdR !== null && pdL !== null){
+      pdTotal = Math.round((pdR + pdL) * 10) / 10;
+    }
+    r.pd = pdR; l.pd = pdL;
+    return {
+      name: $('name').value.trim(),
+      phone: $('phone').value.replace(/[\s-]/g,''),
+      city: $('city').value.trim(),
+      address: $('address').value.trim(),
+      note: $('note').value.trim(),
+      r: r, l: l, pdTotal: pdTotal,
+      noAstig: $('noAstig').checked
+    };
+  }
+
+  function hasAnyRx(d){
+    return d.r.sph !== null || d.l.sph !== null || d.r.cyl !== null || d.l.cyl !== null;
+  }
+
+  /* ---------------- 预览 ---------------- */
+  function setCell(id, text){
+    var el = $(id);
+    if(!el) return;
+    if(!text){ el.textContent = '—'; el.classList.add('dim'); }
+    else { el.textContent = text; el.classList.remove('dim'); }
+  }
+
+  function renderPreview(){
+    var d = readAll();
+    var un = '未填写';
+    setText('pvName', d.name || un, !d.name);
+    setText('pvPhone', d.phone || un, !d.phone);
+    setText('pvAddr', (d.city ? d.city + ' ' : '') + d.address || un, !(d.city || d.address));
+
+    setCell('pvSphR', d.r.sph !== null ? fmtD(d.r.sph) : '');
+    setCell('pvSphL', d.l.sph !== null ? fmtD(d.l.sph) : '');
+    var cylR = d.r.cyl === 0 || d.noAstig ? '' : (d.r.cyl !== null ? fmtD(d.r.cyl) : '');
+    var cylL = d.l.cyl === 0 || d.noAstig ? '' : (d.l.cyl !== null ? fmtD(d.l.cyl) : '');
+    if(d.noAstig){ cylR = '0.00'; cylL = '0.00'; }
+    setCell('pvCylR', cylR);
+    setCell('pvCylL', cylL);
+    var needAxisR = !d.noAstig && d.r.cyl !== null && d.r.cyl !== 0;
+    var needAxisL = !d.noAstig && d.l.cyl !== null && d.l.cyl !== 0;
+    setCell('pvAxiR', needAxisR && d.r.axis !== null ? d.r.axis + '°' : (d.noAstig ? '—' : ''));
+    setCell('pvAxiL', needAxisL && d.l.axis !== null ? d.l.axis + '°' : (d.noAstig ? '—' : ''));
+    setCell('pvPdR', d.r.pd !== null ? d.r.pd + ' mm' : '');
+    setCell('pvPdL', d.l.pd !== null ? d.l.pd + ' mm' : '');
+    setText('pvPdTotal', d.pdTotal ? d.pdTotal + ' mm' : '—', !d.pdTotal);
+  }
+
+  function setText(id, txt, isEmpty){
+    var el = $(id); if(!el) return;
+    el.textContent = txt;
+    if(isEmpty) el.classList.add('empty'); else el.classList.remove('empty');
+  }
+
+  /* ---------------- 校验 ---------------- */
+  function setErr(fieldId, on){
+    var el = $(fieldId); if(!el) return;
+    if(on) el.classList.add('err'); else el.classList.remove('err');
+  }
+
+  function validate(){
+    var d = readAll();
+    var errs = [];
+    ['f-name','f-phone','f-address','f-sph','f-cyl','f-axis','f-pd'].forEach(function(id){ setErr(id,false); });
+
+    if(!d.name){ setErr('f-name',true); errs.push('f-name'); }
+    var digits = (d.phone.match(/\d/g) || []).length;
+    if(digits < 7 || digits > 15 || /[^\d+]/.test(d.phone)){ setErr('f-phone',true); errs.push('f-phone'); }
+    if(!d.address){ setErr('f-address',true); errs.push('f-address'); }
+
+    if(d.r.sph === null && d.l.sph === null){ setErr('f-sph',true); errs.push('f-sph'); }
+    if(d.r.cyl !== null && (d.r.cyl === 0) && !d.noAstig){ /* ok */ }
+    // 轴位必须成对
+    var needAxisR = !d.noAstig && d.r.cyl !== null && d.r.cyl !== 0;
+    var needAxisL = !d.noAstig && d.l.cyl !== null && d.l.cyl !== 0;
+    if(needAxisR && d.r.axis === null){ setErr('f-axis',true); errs.push('f-axis'); }
+    if(needAxisL && d.l.axis === null){ setErr('f-axis',true); errs.push('f-axis'); }
+    if((d.r.axis !== null && (d.r.axis < 0 || d.r.axis > 180)) || (d.l.axis !== null && (d.l.axis < 0 || d.l.axis > 180))){
+      setErr('f-axis',true); errs.push('f-axis');
+    }
+    if((d.r.cyl !== null && Math.abs(d.r.cyl) > 10) || (d.l.cyl !== null && Math.abs(d.l.cyl) > 10)){
+      setErr('f-cyl',true); errs.push('f-cyl');
+    }
+    if((d.r.sph !== null && Math.abs(d.r.sph) > 30) || (d.l.sph !== null && Math.abs(d.l.sph) > 30)){
+      setErr('f-sph',true); errs.push('f-sph');
+    }
+    return { data: d, errs: errs };
+  }
+
+  function errMessage(ids){
+    if(ids.indexOf('f-name') >= 0) return '请填写收件人姓名';
+    if(ids.indexOf('f-phone') >= 0) return '请检查手机号码';
+    if(ids.indexOf('f-address') >= 0) return '请填写详细收货地址';
+    if(ids.indexOf('f-sph') >= 0) return '请至少填写右眼或左眼的球镜度数';
+    if(ids.indexOf('f-axis') >= 0) return '轴位需填写 0-180 的整数';
+    if(ids.indexOf('f-cyl') >= 0) return '散光度数看起来不正确，请核对';
+    return '请检查填写内容';
+  }
+
+  /* ---------------- 生成订单 ---------------- */
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function makeOrderNo(d){
+    var t = new Date();
+    var base = String(t.getFullYear()).slice(2) + pad(t.getMonth()+1) + pad(t.getDate()) + pad(t.getHours()) + pad(t.getMinutes());
+    var rnd = String(Math.floor(Math.random() * 90) + 10);
+    return 'GX' + base + rnd;
+  }
+
+  function fmtTime(iso){
+    var t = new Date(iso);
+    return t.getFullYear() + '-' + pad(t.getMonth()+1) + '-' + pad(t.getDate()) + ' ' + pad(t.getHours()) + ':' + pad(t.getMinutes());
+  }
+
+  function buildText(rec){
+    var lines = [];
+    lines.push('【眼镜定制信息】');
+    lines.push('收件人：' + rec.name);
+    lines.push('手机号：' + rec.phone);
+    lines.push('收货地址：' + (rec.city ? rec.city + ' ' : '') + rec.address);
+    if(rec.note) lines.push('备注：' + rec.note);
+    lines.push('');
+    lines.push('处方（右眼 / 左眼）');
+    lines.push('球镜 SPH：' + (rec.r.sph !== null ? fmtD(rec.r.sph) : '—') + ' / ' + (rec.l.sph !== null ? fmtD(rec.l.sph) : '—'));
+    lines.push('柱镜 CYL：' + (rec.noAstig ? '0.00' : (rec.r.cyl !== null ? fmtD(rec.r.cyl) : '—')) + ' / ' + (rec.noAstig ? '0.00' : (rec.l.cyl !== null ? fmtD(rec.l.cyl) : '—')));
+    lines.push('轴位 AXIS：' + (rec.noAstig ? '—' : (rec.r.axis !== null ? rec.r.axis : '—')) + ' / ' + (rec.noAstig ? '—' : (rec.l.axis !== null ? rec.l.axis : '—')));
+    lines.push('瞳距 PD：' + (rec.r.pd !== null ? rec.r.pd : '—') + ' / ' + (rec.l.pd !== null ? rec.l.pd : '—'));
+    if(rec.pdTotal) lines.push('总瞳距：' + rec.pdTotal + ' mm');
+    lines.push('');
+    lines.push('镜片类型：单光');
+    lines.push('提交时间：' + fmtTime(rec.createdAt));
+    lines.push('编号：' + rec.no);
+    return lines.join('\n');
+  }
+
+  /* ---------------- 存储 ---------------- */
+  function loadRecords(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveRecords(list){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){}
+  }
+
+  /* ---------------- UI 切换 ---------------- */
+  function showScreen(name){
+    $('screenForm').hidden = name !== 'form';
+    $('screenDone').hidden = name !== 'done';
+    $('screenRecords').hidden = name !== 'records';
+    $('screenIntake').hidden = name !== 'intake';
+    $('bottomBar').hidden = name !== 'form';
+    window.scrollTo(0,0);
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 2100);
+  }
+
+  function copyText(text, okMsg){
+    var done = function(){ toast(okMsg || '已复制，去微信粘贴发送吧'); };
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, cb){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.cssText = 'position:fixed;top:-1000px;left:0;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    var ok = false;
+    try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
+    document.body.removeChild(ta);
+    if(ok) cb(); else toast('长按文字手动复制');
+  }
+
+  /* ---------------- 渲染记录 ---------------- */
+  var currentRecords = [];
+
+  function renderRecords(){
+    var list = loadRecords();
+    currentRecords = list;
+    var box = $('recList');
+    box.innerHTML = '';
+    if(!list.length){
+      var e = document.createElement('div');
+      e.className = 'recs-empty';
+      e.innerHTML = '还没有填写记录<br>提交后会保存在这台设备上';
+      box.appendChild(e);
+      return;
+    }
+    list.forEach(function(rec, idx){
+      var d = document.createElement('div');
+      d.className = 'rec';
+      var meta = (rec.city ? rec.city + ' ' : '') + rec.address;
+      var rx = 'R ' + (rec.r.sph !== null ? fmtD(rec.r.sph) : '—') + ' / L ' + (rec.l.sph !== null ? fmtD(rec.l.sph) : '—');
+      d.innerHTML = '<div class="rec-top"><b>' + esc(rec.name) + '</b><span>' + esc(fmtTime(rec.createdAt)) + '</span></div>' +
+        '<div class="rec-meta">' + esc(rec.phone) + '<br>' + esc(meta) + '<br>' + esc(rx) + '</div>' +
+        '<div class="rec-actions"><button data-i="' + idx + '" data-act="copy">复制</button><button data-i="' + idx + '" data-act="del" class="del">删除</button></div>';
+      box.appendChild(d);
+    });
+  }
+
+  function esc(s){
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  $('recList').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    var i = parseInt(btn.getAttribute('data-i'), 10);
+    var act = btn.getAttribute('data-act');
+    var list = loadRecords();
+    if(!list[i]) return;
+    if(act === 'copy') copyText(buildText(list[i]), '已复制这条信息');
+    if(act === 'del'){
+      list.splice(i, 1);
+      saveRecords(list);
+      renderRecords();
+      toast('已删除本机记录');
+    }
+  });
+
+  /* ---------------- 收单：解析对方发回的文字 ---------------- */
+  function parseField(lines, keys){
+    for(var i = 0; i < keys.length; i++){
+      var k = keys[i];
+      for(var j = 0; j < lines.length; j++){
+        var line = lines[j].replace(/^[•·\-*\s]+/, '');
+        if(line.indexOf(k) === 0){
+          var colon = line.search(/[:：]/);
+          var v = (colon > 0 && colon < 22)
+            ? line.slice(colon + 1).trim()
+            : line.slice(k.length).replace(/^[\s:：]+/, '').trim();
+          if(v) return v;
+        }
+      }
+    }
+    return '';
+  }
+
+  function pairOf(v){
+    if(!v) return ['', ''];
+    var parts = v.split(/\s*[\/／]\s*/);
+    return [(parts[0] || '').trim(), (parts[1] || '').trim()];
+  }
+
+  function normZero(n){ return n === 0 ? 0 : n; }
+
+  function parseIntakeText(text){
+    var raw = String(text || '').replace(/\r/g, '');
+    if(!raw.trim()) return null;
+    var lines = raw.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+
+    var name = parseField(lines, ['收件人', '姓名']);
+    var phone = parseField(lines, ['手机号码', '手机号', '手机', '电话']).replace(/[\s-]/g, '');
+    if(!name && !phone) return null;
+
+    var address = parseField(lines, ['收货地址', '地址']);
+    var note = parseField(lines, ['备注']);
+    var no = parseField(lines, ['编号']);
+    var timeText = parseField(lines, ['提交时间', '时间']);
+    var totalText = parseField(lines, ['总瞳距']);
+
+    var sph = pairOf(parseField(lines, ['球镜']));
+    var cyl = pairOf(parseField(lines, ['柱镜']));
+    var axi = pairOf(parseField(lines, ['轴位']));
+    var pd = pairOf(parseField(lines, ['瞳距']));
+
+    var r = {
+      sph: normZero(parsePower(sph[0])),
+      cyl: normZero(parsePower(cyl[0])),
+      axis: parseAxis(axi[0]),
+      pd: parsePd(pd[0])
+    };
+    var l = {
+      sph: normZero(parsePower(sph[1])),
+      cyl: normZero(parsePower(cyl[1])),
+      axis: parseAxis(axi[1]),
+      pd: parsePd(pd[1])
+    };
+
+    var pdTotal = parseFloat(String(totalText).replace(/[^\d.]/g, ''));
+    if(isNaN(pdTotal)) pdTotal = null;
+
+    var createdAt = new Date();
+    var m = timeText.match(/(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})/);
+    if(m){
+      var parsed = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+      if(!isNaN(parsed.getTime())) createdAt = parsed;
+    }
+
+    return {
+      no: no || ('GX' + String(createdAt.getFullYear()).slice(2) + pad(createdAt.getMonth() + 1) + pad(createdAt.getDate()) + pad(createdAt.getHours()) + pad(createdAt.getMinutes()) + String(Math.floor(Math.random() * 90) + 10)),
+      createdAt: createdAt.toISOString(),
+      name: name, phone: phone, city: '', address: address, note: note,
+      r: r, l: l, pdTotal: pdTotal,
+      noAstig: (r.cyl === 0 && l.cyl === 0),
+      source: 'intake'
+    };
+  }
+
+  function renderParsed(rec, dup){
+    var el = $('parseResult');
+    var rxLine = 'R ' + (rec.r.sph !== null ? fmtD(rec.r.sph) : '—') + ' / L ' + (rec.l.sph !== null ? fmtD(rec.l.sph) : '—');
+    var html = '';
+    html += '<div class="parse-ok">' + (dup ? '这条编号已经收过，请勿重复保存' : '识别成功，核对无误后保存') + '</div>';
+    html += '<div class="rec">';
+    html += '<div class="rec-top"><b>' + esc(rec.name || '未填姓名') + '</b><span>' + esc(rec.no) + '</span></div>';
+    html += '<div class="rec-meta">' + esc(rec.phone || '无电话') + '<br>' + esc(rec.address || '无地址') + '<br>' + esc(rxLine) + '</div>';
+    if(rec.note) html += '<div class="rec-meta">备注：' + esc(rec.note) + '</div>';
+    html += '<div class="rec-actions"><button data-act="save">' + (dup ? '仍然保存' : '保存这条') + '</button><button data-act="discard" class="del">清空</button></div>';
+    html += '</div>';
+    el.innerHTML = html;
+    el._rec = rec;
+  }
+
+  function csvCell(v){
+    v = (v === null || v === undefined) ? '' : String(v);
+    return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  function exportCsv(){
+    var list = loadRecords();
+    if(!list.length){ toast('还没有记录可以导出'); return; }
+    var head = ['编号', '提交时间', '姓名', '手机号', '城市', '详细地址', '右球镜', '左球镜', '右柱镜', '左柱镜', '右轴位', '左轴位', '右瞳距', '左瞳距', '总瞳距', '备注'];
+    var rows = list.map(function(x){
+      return [
+        x.no, fmtTime(x.createdAt), x.name, x.phone, x.city, x.address,
+        x.r.sph !== null ? fmtD(x.r.sph) : '', x.l.sph !== null ? fmtD(x.l.sph) : '',
+        x.r.cyl !== null ? fmtD(x.r.cyl) : '', x.l.cyl !== null ? fmtD(x.l.cyl) : '',
+        x.r.axis !== null ? x.r.axis : '', x.l.axis !== null ? x.l.axis : '',
+        x.r.pd !== null ? x.r.pd : '', x.l.pd !== null ? x.l.pd : '',
+        x.pdTotal || '', x.note || ''
+      ];
+    });
+    var csv = '\ufeff' + [head].concat(rows).map(function(row){
+      return row.map(csvCell).join(',');
+    }).join('\r\n');
+    var now = new Date();
+    var name = '眼镜登记-' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + '.csv';
+    try{
+      var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); if(a.parentNode) a.parentNode.removeChild(a); }, 1500);
+      toast('已导出 ' + list.length + ' 条记录');
+    }catch(e){
+      copyText(csv, 'CSV 已复制，粘贴到表格软件即可');
+    }
+  }
+
+  /* ---------------- 渲染成功页 ---------------- */
+  var lastOrder = null;
+
+  function renderDone(rec){
+    lastOrder = rec;
+    $('doneNo').textContent = rec.no;
+    var html = '';
+    html += '<div class="slip-line"><span>收件人</span><b>' + esc(rec.name) + '</b></div>';
+    html += '<div class="slip-line"><span>联系电话</span><b>' + esc(rec.phone) + '</b></div>';
+    html += '<div class="slip-line addr"><span>收货地址</span><b>' + esc((rec.city ? rec.city + ' ' : '') + rec.address) + '</b></div>';
+    if(rec.note) html += '<div class="slip-line"><span>备注</span><b>' + esc(rec.note) + '</b></div>';
+    html += '<div class="slip-divider"></div>';
+    html += '<table class="rx-table"><thead><tr><th>处方</th><th>右眼 R</th><th>左眼 L</th></tr></thead><tbody>';
+    html += '<tr><td>球镜 SPH</td><td>' + (rec.r.sph !== null ? fmtD(rec.r.sph) : '—') + '</td><td>' + (rec.l.sph !== null ? fmtD(rec.l.sph) : '—') + '</td></tr>';
+    html += '<tr><td>柱镜 CYL</td><td>' + (rec.noAstig ? '0.00' : (rec.r.cyl !== null ? fmtD(rec.r.cyl) : '—')) + '</td><td>' + (rec.noAstig ? '0.00' : (rec.l.cyl !== null ? fmtD(rec.l.cyl) : '—')) + '</td></tr>';
+    html += '<tr><td>轴位 AXIS</td><td>' + (rec.noAstig ? '—' : (rec.r.axis !== null ? rec.r.axis + '°' : '—')) + '</td><td>' + (rec.noAstig ? '—' : (rec.l.axis !== null ? rec.l.axis + '°' : '—')) + '</td></tr>';
+    html += '<tr><td>瞳距 PD</td><td>' + (rec.r.pd !== null ? rec.r.pd + ' mm' : '—') + '</td><td>' + (rec.l.pd !== null ? rec.l.pd + ' mm' : '—') + '</td></tr>';
+    html += '</tbody></table>';
+    if(rec.pdTotal) html += '<div class="slip-divider"></div><div class="slip-line"><span>总瞳距</span><b>' + rec.pdTotal + ' mm</b></div>';
+    $('doneBody').innerHTML = html;
+  }
+
+  /* ---------------- 事件 ---------------- */
+  ['name','phone','city','address','note','r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){
+    $(id).addEventListener('input', function(){
+      renderPreview();
+      var f = this.closest('.field') || this.closest('.rx-row');
+      if(f) f.classList.remove('err');
+    });
+  });
+
+  $('noAstig').addEventListener('change', function(){
+    var on = this.checked;
+    ['r-cyl','l-cyl','r-axis','l-axis'].forEach(function(id){
+      $(id).disabled = on;
+      if(on) $(id).value = '';
+    });
+    renderPreview();
+  });
+
+  // 总瞳距自动平分提示
+  function pdBlur(e){
+    var el = e.target;
+    var v = parseFloat(el.value);
+    if(isNaN(v)) return;
+    if(el.id === 'r-pd' && v >= 50 && !$('l-pd').value.trim()){
+      var half = Math.round(v / 2 * 10) / 10;
+      $('l-pd').value = half;
+      el.value = half;
+      toast('已按总瞳距 ' + v + ' mm 平分到左右眼');
+      renderPreview();
+    } else if(el.id === 'l-pd' && v >= 50 && !$('r-pd').value.trim()){
+      var h2 = Math.round(v / 2 * 10) / 10;
+      $('r-pd').value = h2;
+      el.value = h2;
+      toast('已按总瞳距 ' + v + ' mm 平分到左右眼');
+      renderPreview();
+    }
+  }
+  $('r-pd').addEventListener('blur', pdBlur);
+  $('l-pd').addEventListener('blur', pdBlur);
+
+  $('submitBtn').addEventListener('click', function(){
+    var res = validate();
+    if(res.errs.length){
+      toast(errMessage(res.errs));
+      var first = $(res.errs[0]);
+      if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    var d = res.data;
+    var rec = {
+      no: makeOrderNo(d),
+      createdAt: new Date().toISOString(),
+      name: d.name, phone: d.phone, city: d.city, address: d.address, note: d.note,
+      r: d.r, l: d.l, pdTotal: d.pdTotal, noAstig: d.noAstig
+    };
+    var list = loadRecords();
+    list.unshift(rec);
+    saveRecords(list);
+    renderDone(rec);
+    showScreen('done');
+  });
+
+  $('copyDone').addEventListener('click', function(){
+    if(lastOrder) copyText(buildText(lastOrder));
+  });
+
+  $('againBtn').addEventListener('click', function(){
+    ['name','phone','city','address','note','r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){ $(id).value = ''; });
+    $('noAstig').checked = false;
+    ['r-cyl','l-cyl','r-axis','l-axis'].forEach(function(id){ $(id).disabled = false; });
+    renderPreview();
+    showScreen('form');
+  });
+
+  $('goRecords').addEventListener('click', function(){
+    renderRecords();
+    showScreen('records');
+  });
+  $('backFromRecords').addEventListener('click', function(){ showScreen('form'); });
+
+  $('goIntake').addEventListener('click', function(){ showScreen('intake'); });
+  $('backFromIntake').addEventListener('click', function(){ showScreen('form'); });
+
+  $('parseBtn').addEventListener('click', function(){
+    var text = $('pasteBox').value;
+    if(!text.trim()){ toast('先把对方发来的文字粘贴进来'); return; }
+    var rec = parseIntakeText(text);
+    if(!rec){ toast('没识别到有效信息，请检查是否粘贴完整'); return; }
+    var dup = !!rec.no && loadRecords().some(function(x){ return x.no === rec.no; });
+    renderParsed(rec, dup);
+    $('parseResult').scrollIntoView({behavior: 'smooth', block: 'center'});
+  });
+
+  $('parseResult').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    var act = btn.getAttribute('data-act');
+    if(act === 'discard'){
+      this.innerHTML = '';
+      $('pasteBox').value = '';
+      return;
+    }
+    if(act === 'save'){
+      var rec = this._rec;
+      if(!rec) return;
+      var list = loadRecords();
+      if(rec.no && list.some(function(x){ return x.no === rec.no; })){
+        toast('这条已经收过了');
+        return;
+      }
+      list.unshift(rec);
+      saveRecords(list);
+      this.innerHTML = '';
+      $('pasteBox').value = '';
+      renderRecords();
+      showScreen('records');
+      toast('已收单，记录已保存');
+    }
+  });
+
+  $('exportCsv').addEventListener('click', exportCsv);
+
+  var shareBtn = $('shareBtn');
+  if(/^https?:/.test(location.protocol)) shareBtn.hidden = false;
+  shareBtn.addEventListener('click', function(){
+    var url = location.href.split('#')[0];
+    var msg = '眼镜定制信息登记，点开直接填，约 2 分钟：';
+    if(navigator.share){
+      navigator.share({ title: '眼镜定制信息登记', text: msg, url: url }).catch(function(){});
+    } else {
+      copyText(msg + url, '链接已复制，去微信粘贴发送');
+    }
+  });
+
+  /* ---------------- 初始化 ---------------- */
+  var now = new Date();
+  $('slipDate').textContent = now.getFullYear() + '.' + pad(now.getMonth()+1) + '.' + pad(now.getDate());
+  renderPreview();
+})();
+</script>
+</body>
+</html>
