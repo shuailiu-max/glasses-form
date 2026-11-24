@@ -81,7 +81,8 @@
   .field:last-child{margin-bottom:0}
   .field label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:7px;letter-spacing:.2px}
   .field label .req{color:var(--gold);margin-left:2px}
-  .field input,.field textarea{
+  .field label .opt{color:var(--faint);font-size:11.5px;margin-left:4px}
+  .field input,.field textarea,.field select{
     display:block;width:100%;
     background:#FBFAF7;
     border:1px solid var(--line);
@@ -92,13 +93,18 @@
     outline:none;
     transition:border-color .18s,background .18s,box-shadow .18s;
   }
+  .field select{
+    appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:42px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236E7A74' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;
+  }
   .field textarea{min-height:78px;resize:none;padding-top:12px}
   .field input::placeholder,.field textarea::placeholder{color:#B8BFBA;font-size:15px}
-  .field input:focus,.field textarea:focus{
+  .field input:focus,.field textarea:focus,.field select:focus{
     border-color:#8FB6A8;background:#fff;box-shadow:0 0 0 3px rgba(29,92,75,.08)
   }
   .field input:disabled{background:#F2F0EA;color:#A9B0AC}
-  .field.err input,.field.err textarea{border-color:#E3A79F;background:#FFF8F6}
+  .field.err input,.field.err textarea,.field.err select{border-color:#E3A79F;background:#FFF8F6}
   .err-msg{display:none;font-size:12px;color:var(--danger);margin-top:6px}
   .field.err .err-msg{display:block}
   .tip{font-size:12px;color:var(--faint);margin-top:6px;line-height:1.45}
@@ -309,6 +315,22 @@
         <div class="err-msg">请填写详细收货地址</div>
         <div class="tip">写清楼栋与门牌号，快递员更容易联系到您。</div>
       </div>
+
+      <div class="field" id="f-frameType" style="margin-top:16px">
+        <label for="frameType">框型偏好<span class="opt">选填</span></label>
+        <select id="frameType">
+          <option value="">请选择（不确定可留空）</option>
+          <option value="圆框">圆框</option>
+          <option value="方框">方框</option>
+          <option value="椭圆">椭圆</option>
+          <option value="飞行员">飞行员</option>
+          <option value="猫眼">猫眼</option>
+          <option value="多边形">多边形</option>
+          <option value="帮我推荐">不确定，帮我推荐</option>
+          <option value="其它">其它（在补充说明里写）</option>
+        </select>
+        <div class="tip">先选一个喜欢的，最终以试戴效果和脸型适配为准。</div>
+      </div>
     </section>
 
     <!-- 02 处方 -->
@@ -375,6 +397,7 @@
           <div class="slip-line"><span>收件人</span><b id="pvName" class="empty">未填写</b></div>
           <div class="slip-line"><span>联系电话</span><b id="pvPhone" class="empty">未填写</b></div>
           <div class="slip-line addr"><span>收货地址</span><b id="pvAddr" class="empty">未填写</b></div>
+          <div class="slip-line"><span>框型</span><b id="pvFrameType" class="empty">未选择</b></div>
           <div class="slip-divider"></div>
           <table class="rx-table">
             <thead><tr><th>处方</th><th>右眼 R</th><th>左眼 L</th></tr></thead>
@@ -564,6 +587,7 @@
       phone: $('phone').value.replace(/[\s-]/g,''),
       city: $('city').value.trim(),
       address: $('address').value.trim(),
+      frameType: $('frameType').value,
       note: $('note').value.trim(),
       r: r, l: l, pdTotal: pdTotal,
       noAstig: $('noAstig').checked
@@ -588,6 +612,7 @@
     setText('pvName', d.name || un, !d.name);
     setText('pvPhone', d.phone || un, !d.phone);
     setText('pvAddr', (d.city ? d.city + ' ' : '') + d.address || un, !(d.city || d.address));
+    setText('pvFrameType', d.frameType || '未选择', !d.frameType);
 
     setCell('pvSphR', d.r.sph !== null ? fmtD(d.r.sph) : '');
     setCell('pvSphL', d.l.sph !== null ? fmtD(d.l.sph) : '');
@@ -619,7 +644,7 @@
   }
 
   function clearErrors(){
-    ['f-name','f-phone','f-address','f-sph','f-cyl','f-axis','f-pd'].forEach(function(id){ setErr(id,false); });
+    ['f-name','f-phone','f-address','f-frameType','f-sph','f-cyl','f-axis','f-pd'].forEach(function(id){ setErr(id,false); });
     ['r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){
       var el = $(id); if(el){ el.setAttribute('aria-invalid','false'); el.classList.remove('input-err'); }
     });
@@ -725,6 +750,7 @@
     lines.push('收件人：' + rec.name);
     lines.push('手机号：' + rec.phone);
     lines.push('收货地址：' + (rec.city ? rec.city + ' ' : '') + rec.address);
+    if(rec.frameType) lines.push('框型：' + rec.frameType);
     if(rec.note) lines.push('备注：' + rec.note);
     lines.push('');
     lines.push('处方（右眼 / 左眼）');
@@ -983,6 +1009,7 @@
     html += '<div class="slip-line"><span>收件人</span><b>' + esc(rec.name) + '</b></div>';
     html += '<div class="slip-line"><span>联系电话</span><b>' + esc(rec.phone) + '</b></div>';
     html += '<div class="slip-line addr"><span>收货地址</span><b>' + esc((rec.city ? rec.city + ' ' : '') + rec.address) + '</b></div>';
+    if(rec.frameType) html += '<div class="slip-line"><span>框型</span><b>' + esc(rec.frameType) + '</b></div>';
     if(rec.note) html += '<div class="slip-line"><span>备注</span><b>' + esc(rec.note) + '</b></div>';
     html += '<div class="slip-divider"></div>';
     html += '<table class="rx-table"><thead><tr><th>处方</th><th>右眼 R</th><th>左眼 L</th></tr></thead><tbody>';
@@ -1017,6 +1044,8 @@
     refreshAxisBarIfShown();
   });
 
+  $('frameType').addEventListener('change', renderPreview);
+
   // 总瞳距自动平分提示
   function pdBlur(e){
     var el = e.target;
@@ -1049,7 +1078,7 @@
     }
     var d = res.data;
     var payload = {
-      name: d.name, phone: d.phone, city: d.city, address: d.address, note: d.note,
+      name: d.name, phone: d.phone, city: d.city, address: d.address, frameType: d.frameType, note: d.note,
       noAstig: d.noAstig,
       r: { sph: d.r.sphRaw, cyl: d.r.cylRaw, axis: d.r.axisRaw, pd: d.r.pdRaw },
       l: { sph: d.l.sphRaw, cyl: d.l.cylRaw, axis: d.l.axisRaw, pd: d.l.pdRaw }
@@ -1096,6 +1125,7 @@
 
   $('againBtn').addEventListener('click', function(){
     ['name','phone','city','address','note','r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){ $(id).value = ''; });
+    $('frameType').value = '';
     $('noAstig').checked = false;
     ['r-cyl','l-cyl','r-axis','l-axis'].forEach(function(id){ $(id).disabled = false; });
     renderPreview();
@@ -1172,7 +1202,7 @@
   (function prefill(){
     if(!window.URLSearchParams) return;
     var q = new URLSearchParams(location.search);
-    var map = { n:'name', p:'phone', c:'city', a:'address', note:'note',
+    var map = { n:'name', p:'phone', c:'city', a:'address', ft:'frameType', note:'note',
       rs:'r-sph', rc:'r-cyl', ra:'r-axis', rp:'r-pd',
       ls:'l-sph', lc:'l-cyl', la:'l-axis', lp:'l-pd' };
     var hit = false;
