@@ -317,12 +317,13 @@
       </div>
 
       <div class="field" id="f-frameType" style="margin-top:16px">
-        <label for="frameType">框型偏好<span class="opt">选填</span></label>
-        <select id="frameType">
-          <option value="">请选择（不确定可留空）</option>
+        <label for="frameType">框型<span class="req">*</span></label>
+        <select id="frameType" aria-required="true" required>
+          <option value="">请选择框型</option>
           <option value="圆框">圆框</option>
           <option value="方框">方框</option>
         </select>
+        <div class="err-msg">请选择框型</div>
         <div class="tip">先选一个喜欢的，最终以试戴效果和脸型适配为准。</div>
       </div>
     </section>
@@ -639,7 +640,7 @@
 
   function clearErrors(){
     ['f-name','f-phone','f-address','f-frameType','f-sph','f-cyl','f-axis','f-pd'].forEach(function(id){ setErr(id,false); });
-    ['r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){
+    ['frameType','r-sph','r-cyl','r-axis','r-pd','l-sph','l-cyl','l-axis','l-pd'].forEach(function(id){
       var el = $(id); if(el){ el.setAttribute('aria-invalid','false'); el.classList.remove('input-err'); }
     });
     var bar = $('err-axis');
@@ -676,6 +677,7 @@
     if(!d.name) add('name', '请填写收件人姓名');
     if(!/^\+?\d{7,15}$/.test(d.phone)) add('phone', '请填写正确的手机号码');
     if(!d.address) add('address', '请填写详细收货地址');
+    if(!d.frameType) add('frameType', '请选择框型');
 
     if(d.r.sphBad) add('r-sph', '右眼球镜格式不正确');
     if(d.l.sphBad) add('l-sph', '左眼球镜格式不正确');
@@ -1038,7 +1040,13 @@
     refreshAxisBarIfShown();
   });
 
-  $('frameType').addEventListener('change', renderPreview);
+  $('frameType').addEventListener('change', function(){
+    renderPreview();
+    this.classList.remove('input-err');
+    this.setAttribute('aria-invalid','false');
+    var f = this.closest('.field');
+    if(f) f.classList.remove('err');
+  });
 
   // 总瞳距自动平分提示
   function pdBlur(e){
