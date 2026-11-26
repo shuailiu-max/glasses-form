@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="robots" content="noindex,nofollow" />
+<title>配镜登记 · 管理后台</title>
+<style>
+  :root{--brand:#1D5C4B;--bg:#F4F2EC;--sub:#6E7A74}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#1E6150,#153F34 60%,#102F27);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;color:#16211D}
+  .card{width:100%;max-width:380px;background:#fff;border-radius:20px;padding:30px 24px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);text-align:center}
+  .mark{width:52px;height:52px;border-radius:15px;background:#EDF4F0;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+  h1{margin:0;font-size:21px;font-weight:600}
+  p{margin:12px 0 0;font-size:13px;line-height:1.7;color:var(--sub)}
+  a{display:inline-flex;align-items:center;justify-content:center;margin-top:18px;height:44px;padding:0 20px;border-radius:11px;background:var(--brand);color:#fff;text-decoration:none;font-size:14px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="mark">🔐</div>
+  <h1>正在打开管理后台</h1>
+  <p id="msg">正在连接店主服务，请稍候…</p>
+  <a id="manual" href="#" hidden>手动打开后台</a>
+</div>
+<script src="config.js"></script>
+<script>
+(function(){
+  'use strict';
+  var msg = document.getElementById('msg');
+  var manual = document.getElementById('manual');
+  var base = String(window.GLASSES_API_BASE || '').replace(/\/$/, '');
+  if(!base){ msg.textContent = '后台地址尚未配置，请联系店主。'; return; }
+  var target = base + '/admin';
+  manual.href = target;
+  manual.hidden = false;
+  location.replace(target);
+  setTimeout(function(){
+    if(!document.hidden) msg.textContent = '如果页面没有自动跳转，请点击下面的按钮。';
+  }, 2500);
+})();
+</script>
+</body>
+</html>
