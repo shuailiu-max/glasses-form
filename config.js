@@ -1,1 +1,1 @@
-window.GLASSES_API_BASE = 'https://end-readily-connect-refinance.trycloudflare.com';
+window.GLASSES_API_BASE = 'https://statute-broadband-detected-messaging.trycloudflare.com';
